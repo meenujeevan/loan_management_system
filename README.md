@@ -9,4 +9,4 @@ Duties
 ●	Upload and processed the data to structured format and moved to RDS instance
 ●	Migrated the data with suitable format using lambda whenever data is uploaded in s3
 ●	Launched EC2 instance and deployed the code.
-●	Created simple interactive visualization for listing the customer and loan details using python.
+●	Created simple interactive visualization for listing the customer and loan details using python and Grafana.
