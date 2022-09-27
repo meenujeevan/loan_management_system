@@ -1,0 +1,58 @@
+import json
+import csv
+import boto3
+import urllib.parse
+import awswrangler as wr
+import openpyxl
+import pandas as pd
+import mysql.connector
+def lambda_handler(event, context):
+    s3_cient=boto3.client('s3')
+    files = []
+    if event:
+        bucket = event['Records'][0]['s3']['bucket']['name']
+        key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
+        df = wr.s3.read_csv(path='s3://loan-management-system/customer_loan_details/',path_suffix=['.csv'])
+        blankIndex=[''] * len(df)
+        df.index=blankIndex
+        dfcsv=df.values
+        listcsv=dfcsv.tolist()
+        for item in listcsv:
+            files.append(item)
+        df1 = wr.s3.read_json(path='s3://loan-management-system/customer_loan_details/',orient='records',path_suffix=['.json'])
+        blankIndex=[''] * len(df1)
+        df1.index=blankIndex
+        df1json=df1.values
+        listjson=df1json.tolist()
+        for item in listjson:
+            files.append(item)
+        df2 = wr.s3.read_excel(path='s3://loan-management-system/customer_loan_details/customer_loan_details_3.xlsx',engine='openpyxl')
+        blankIndex=[''] * len(df2)
+        df2.index=blankIndex
+        df2excel=df2.values
+        listexcel=df2excel.tolist()
+        for item in listexcel:
+            files.append(item)
+        print(files)
+        connection = mysql.connector.connect(host='loanmanagement.cmof1hljrqlw.us-east-1.rds.amazonaws.com',
+                                         database='loanmanagement',
+                                         port='3306',
+                                         user='admin',
+                                         passwd='admin12345')
+    
+        mysql_insert = "insert into customer_loan_detail(Loan_ID, Customer_ID, Loan_Status, Current_Loan_Amount, No_of_Active_Loans, Current_EMI, Total_EMI, No_of_Closed_Loan, No_of_Active_Credit_Card, Credit_limit, Used_Limit, Percentage_of_Utilization, Cibil_Score, Total_Obligation, No_of_dependencies, Risk_factor_in_percentage, No_of_cheque_bounces, No_of_enqires_in_last_6months, No_of_loan_rejected_in_last_6months) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor = connection.cursor()
+        cursor.executemany(mysql_insert, files)
+        connection.commit()
+        return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!')
+        }
+
+
+
+
+
+
+
+    
